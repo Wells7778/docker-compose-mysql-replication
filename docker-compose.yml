@@ -1,0 +1,75 @@
+version: "3.5"
+services:
+  main:
+    image: mysql:5.7
+    platform: linux/amd64
+    container_name: main
+    hostname: main
+    volumes:
+      - ./data/main:/var/lib/mysql
+    ports:
+      - 3307:3306
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Taipei
+    env_file:
+      - ".env"
+    command: ["mysqld",
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_unicode_ci",
+      "--default-time-zone=+08:00",
+      "--server-id=1",
+      "--log-bin=/var/lib/mysql/mysql-bin.log",
+      "--log-slave-updates=0",
+      "--expire_logs_days=10",
+      "--max_binlog_size=100M",
+      "--innodb_flush_log_at_trx_commit=1",
+      "--sync_binlog=1",
+      "--read_only=0"]
+    networks:
+      db_network:
+        ipv4_address: 172.24.0.2
+    healthcheck:
+      test: "mysqladmin ping -u root -p$${MYSQL_ROOT_PASSWORD}"
+      interval: 2s
+      retries: 20
+  replica:
+    image: mysql:5.7
+    platform: linux/amd64
+    volumes:
+      - ./data/replica:/var/lib/mysql
+    container_name: replica
+    hostname: replica
+    ports:
+      - 3308:3306
+    environment:
+      - TZ=Asia/Taipei
+    env_file:
+      - "./.env"
+    command: ["mysqld",
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_unicode_ci",
+      "--default-time-zone=+08:00",
+      "--server-id=2",
+      "--log-bin=/var/lib/mysql/mysql-bin.log",
+      "--log-slave-updates=0",
+      "--expire_logs_days=10",
+      "--max_binlog_size=100M",
+      "--innodb_flush_log_at_trx_commit=1",
+      "--sync_binlog=0",
+      "--read_only=1"]
+    networks:
+      db_network:
+        ipv4_address: 172.24.0.3
+    depends_on:
+      - main
+    healthcheck:
+      test: "mysqladmin ping -u root -p$${MYSQL_ROOT_PASSWORD}"
+      interval: 2s
+      retries: 20
+networks:
+  db_network:
+    ipam:
+      config:
+      - subnet: 172.24.0.0/16
+        gateway: 172.24.0.1
