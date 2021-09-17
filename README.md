@@ -20,7 +20,7 @@ container_id   mysql:5.7   "docker-entrypoint.s…"   About an hour ago   Up Abo
 ### 步驟二：在main(master)設定replication帳號和權限
 先利用docker-compose exec連進main這個容器內的mysql
 ```
-docker-compose exec main mysql -u root -ppassword
+docker-compose exec main mysql -u root -p
 ```
 接著設定帳號與權限
 ```
@@ -46,7 +46,7 @@ Executed_Gtid_Set:
 ### 步驟三：在replica(slave)設定replication group
 一樣透過docker-compose exec連進replica這個容器內的mysql
 ```
-docker-compose exec replica mysql -u root -ppassword
+docker-compose exec replica mysql -u root -p
 ```
 先停掉SLAVE
 ```
@@ -55,7 +55,7 @@ mysql> STOP SLAVE;
 接著把master資訊設定進去
 > 剛剛記下來的File填到MASTER_LOG_FILE裡，position填到MASTER_LOG_POS裡
 ```
-mysql> CHANGE MASTER TO MASTER_HOST='172.24.0.2', MASTER_PORT=3306, MASTER_USER='replication', MASTER_PASSWORD='password', MASTER_LOG_FILE='mysql-bin.000006', MASTER_LOG_POS=3994;
+mysql> CHANGE MASTER TO MASTER_HOST='172.24.0.2', MASTER_PORT=3306, MASTER_USER='replication', MASTER_PASSWORD='password', MASTER_LOG_FILE='mysql-bin.000004', MASTER_LOG_POS=504;
 ```
 開啟SLAVE
 ```
